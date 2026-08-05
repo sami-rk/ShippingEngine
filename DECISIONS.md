@@ -230,6 +230,39 @@ These cases are not triggered by any order in `orders.json` but are stated for c
 
 ---
 
+## Implementation design decision 
+
+### immutable (`frozen`) data classes
+
+The input models (`Item`, `Order`) and output models (`Shipment`, `OrderResult`)
+are declared as `@dataclass(frozen=True)` rather than plain mutable dataclasses.
+Rationale:
+
+- **They represent shipped documents, not working state.** An `Item`/`Order` is
+  loaded once from `orders.json` and then read by the engine; there is no reason
+  to change its fields after parsing. `Shipment`/`OrderResult` are the computed
+  result, also treated as values.
+- **It prevents accidental mutation.** A frozen dataclass raises
+  `dataclasses.FrozenInstanceError` on any attempt to rebind an attribute, so a
+  bug in the engine cannot silently corrupt an order's fields mid-computation.
+- **It is automatically hashable.** `frozen=True` derives a `__hash__` from the
+  fields, so instances can be used in sets or as dictionary keys. (An ordinary
+  `frozen=False` dataclass is unhashable by default.)
+- **It documents intent.** Immutability makes it explicit that these are value
+  objects, which keeps the pipeline pure and easier to reason about and test.
+- **Shallow-immutability nuance:** `frozen=True` only prevents rebinding the
+  top-level attributes. To also prevent mutating the *contents* of the items
+  collection, `Order.items` is a `tuple` (immutable) rather than a `list`. If it
+  were a `list`, code could still call `order.items.append(...)` even though the
+  `Order` object itself is frozen.
+
+The alternative — mutability (`@dataclass`) — was rejected: it would permit
+in-place modification with no compiler/runtime guard, increasing the risk of
+order-corrupting bugs for no benefit in this read-only pipeline.
+
+---
+
+
 ## Result verification method
 
 - A snapshot test asserts all 27 expected order totals (the values derived from these decisions).
