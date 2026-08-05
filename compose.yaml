@@ -1,0 +1,20 @@
+# One-command runner for the Bazaar shipping-cost engine.
+#
+#   docker compose run --rm --build engine
+#
+# Builds the image (if needed), runs the engine once against ./orders.json and
+# writes ./results.json back into the repo (via the ./:/work bind-mount).
+# The container itself runs the code copied into the image at /app.
+#
+# Tests in-container:
+#
+#   docker compose run --rm engine pytest -q
+
+services:
+  engine:
+    build: .
+    image: bazaar-shipping-engine
+    working_dir: /app
+    command: ["python", "-m", "shipping_engine.cli", "-i", "/work/orders.json", "-o", "/work/results.json"]
+    volumes:
+      - .:/work
