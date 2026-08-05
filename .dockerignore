@@ -1,0 +1,13 @@
+# Files excluded from the Docker build context.
+.git
+.gitignore
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+*.pdf
+DECISIONS.md
+README.md
+LICENSE
+results.json
+.venv/
+venv/
