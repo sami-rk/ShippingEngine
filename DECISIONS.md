@@ -265,19 +265,6 @@ The alternative — mutability (`@dataclass`) — was rejected: it would permit
 in-place modification with no compiler/runtime guard, increasing the risk of
 order-corrupting bugs for no benefit in this read-only pipeline.
 
-### Fixed-offset Iran timezone via `zoneinfo`
-
-- **Decision:** `IRAN_TZ = ZoneInfo("Asia/Tehran")` in `config.py`, and every
-  timestamp is converted with `created_at.astimezone(IRAN_TZ)` before the night
-  window is evaluated (see D8/D9).
-- **Why it's notable:** the offset is **never hardcoded** as `+03:30`. Iran
-  abolished DST in 2022, so a fixed offset would be correct for every 2026
-  timestamp in the data — but deriving the offset from the IANA timezone
-  database instead keeps the rule correct even if a pre-2022 or DST-observing
-  timestamp ever appears. It also means the runtime needs the system timezone
-  database: the container image installs `tzdata` for exactly this reason (see
-  the `Dockerfile`), which is easy to miss on a slim image.
-
 ### Exact integer arithmetic for the night surcharge
 
 - **Decision:** the 10% surcharge is `subtotal * (100 + percent) // 100` (see
@@ -297,17 +284,6 @@ order-corrupting bugs for no benefit in this read-only pipeline.
   skew the 500,000 free-shipping threshold (D2/D3) in counter-intuitive ways.
   The floor is a guard: no line in `orders.json` has `discount > gross`, so it
   is defensive rather than exercised by the data.
-
-### Quantity-weighted aggregation at shipment level
-
-- **Decision:** a shipment's non-bulky weight is `Σ (weight_grams × quantity)`
-  and its bulky count is `Σ quantity` over bulky lines (see `compute_shipment_fee`).
-- **Why it's notable:** `quantity` is multiplied into both the weight bracket
-  (D4) and the per-item bulky fee (D5), rather than treating a quantity-2 line
-  as a single item. This is what makes lines like ORD-1005 (3 × 700 g → 2,100 g)
-  and ORD-1024 (4 books → 8,800 g) price correctly, and it keeps the engine
-  correct if a multi-quantity bulky line ever appears (see the untested-case
-  note on bulky quantity above).
 
 ### Deterministic shipment ordering
 
