@@ -230,7 +230,12 @@ These cases are not triggered by any order in `orders.json` but are stated for c
 
 ---
 
-## Implementation design decision 
+## Implementation design decisions
+
+This section records the choices that are about the *code itself* — techniques
+or behaviors that are not obvious from the nine rules, could be questioned on
+inspection, or rely on knowledge that is not universally expected. The rules-level
+decisions D1–D15 are above; this is the layer below them.
 
 ### immutable (`frozen`) data classes
 
@@ -259,6 +264,70 @@ Rationale:
 The alternative — mutability (`@dataclass`) — was rejected: it would permit
 in-place modification with no compiler/runtime guard, increasing the risk of
 order-corrupting bugs for no benefit in this read-only pipeline.
+
+### Fixed-offset Iran timezone via `zoneinfo`
+
+- **Decision:** `IRAN_TZ = ZoneInfo("Asia/Tehran")` in `config.py`, and every
+  timestamp is converted with `created_at.astimezone(IRAN_TZ)` before the night
+  window is evaluated (see D8/D9).
+- **Why it's notable:** the offset is **never hardcoded** as `+03:30`. Iran
+  abolished DST in 2022, so a fixed offset would be correct for every 2026
+  timestamp in the data — but deriving the offset from the IANA timezone
+  database instead keeps the rule correct even if a pre-2022 or DST-observing
+  timestamp ever appears. It also means the runtime needs the system timezone
+  database: the container image installs `tzdata` for exactly this reason (see
+  the `Dockerfile`), which is easy to miss on a slim image.
+
+### Exact integer arithmetic for the night surcharge
+
+- **Decision:** the 10% surcharge is `subtotal * (100 + percent) // 100` (see
+  `_increase_by_percent` in `engine.py`) — never float multiplication.
+- **Why it's notable:** `//` truncates. In this dataset every surcharge-bearing
+  subtotal is a multiple of 5,000, so results are exact whole numbers; for a
+  hypothetical non-multiple the surcharge would *floor*. Integer math is used
+  deliberately to avoid float-representation surprises (e.g. `0.1 * 150000`) in
+  a currency context, and the D14 tests pin this exact behaviour.
+
+### Per-line net value floored at zero
+
+- **Decision:** `net_line = max(0, unit_price * quantity - discount)` in
+  `rules.py`.
+- **Why it's notable:** a discount larger than the line's gross would otherwise
+  produce a negative line value, which could drag an order's total below zero or
+  skew the 500,000 free-shipping threshold (D2/D3) in counter-intuitive ways.
+  The floor is a guard: no line in `orders.json` has `discount > gross`, so it
+  is defensive rather than exercised by the data.
+
+### Quantity-weighted aggregation at shipment level
+
+- **Decision:** a shipment's non-bulky weight is `Σ (weight_grams × quantity)`
+  and its bulky count is `Σ quantity` over bulky lines (see `compute_shipment_fee`).
+- **Why it's notable:** `quantity` is multiplied into both the weight bracket
+  (D4) and the per-item bulky fee (D5), rather than treating a quantity-2 line
+  as a single item. This is what makes lines like ORD-1005 (3 × 700 g → 2,100 g)
+  and ORD-1024 (4 books → 8,800 g) price correctly, and it keeps the engine
+  correct if a multi-quantity bulky line ever appears (see the untested-case
+  note on bulky quantity above).
+
+### Deterministic shipment ordering
+
+- **Decision:** shipments are emitted sorted by `seller_id` in
+  `compute_order_shipping`.
+- **Why it's notable:** the output schema (see the task's example) does not
+  require any order, and `json.dump` preserves object order. Sorting makes
+  `results.json` stable and byte-identical across runs, so re-running the engine
+  is diffable and the snapshot test never depends on dict-insertion order.
+
+### CLI defaults are current-directory-relative
+
+- **Decision:** `cli.py` defaults to `./orders.json` / `./results.json`, i.e.
+  the command is designed to run from the repository root
+  (`python -m shipping_engine.cli`).
+- **Why it's notable:** an earlier version defaulted to `../orders.json` and
+  required running from *inside* the package directory. The cwd-relative default
+  is the more ordinary invocation. Docker/Compose sidestep the question entirely
+  by passing explicit `-i`/`-o` paths (both the `Dockerfile` and `compose.yaml`
+  do this), so the container never depends on the working directory.
 
 ---
 
