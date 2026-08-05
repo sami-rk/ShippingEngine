@@ -101,3 +101,34 @@ Notes:
   uid 1000.
 - The container always runs the code baked into the image; the bind-mount is
   only for the input/output JSON files.
+
+## Troubleshooting: `permission denied while trying to connect to the docker API`
+
+If the Docker commands above fail with:
+
+```
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+
+your user is not in the `docker` group, so the CLI cannot talk to the Docker
+daemon. Fix it once with:
+
+```bash
+sudo usermod -aG docker $USER
+```
+
+Then **log out and back in** (or open a new terminal) for the group to take
+effect — a shell started before the change still uses the old permissions.
+Verify with:
+
+```bash
+docker ps
+```
+
+If it lists containers (or just the headers) instead of an error, the Docker
+commands in this README will now work. For a quick check in the current
+terminal without re-logging in, you can run:
+
+```bash
+sg docker -c "docker compose run --rm --build engine"
+```
