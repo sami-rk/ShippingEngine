@@ -216,8 +216,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-<<<<<<< HEAD
-=======
 
 *.pdf
->>>>>>> f83eb8c (Update .gitignore)
