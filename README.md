@@ -74,3 +74,30 @@ pytest -q            # or: <venv>/bin/pytest -q
 The suite asserts one focused behaviour per decision (D1–D15) and snapshots all
 27 order totals, so it guards the engine against regressions relative to the
 documented decisions.
+
+## Running with Docker (one command)
+
+The repo ships a `Dockerfile` + `compose.yaml` so the whole task runs with a
+single command — no local Python setup needed:
+
+```bash
+docker compose run --rm --build engine
+```
+
+This builds the image (only on first run), executes the engine against
+`orders.json`, and writes `results.json` back into the repository root via a
+bind-mount. Re-run it any time to regenerate the output.
+
+To run the test suite inside the same container:
+
+```bash
+docker compose run --rm engine pytest -q
+```
+
+Notes:
+
+- The container runs as a non-root user (`appuser`, uid 1000). If your host
+  user's uid differs, files written to the mounted directory may be owned by
+  uid 1000.
+- The container always runs the code baked into the image; the bind-mount is
+  only for the input/output JSON files.
