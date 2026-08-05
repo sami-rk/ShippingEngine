@@ -5,6 +5,13 @@ independently of the full pipeline.
 """
 from __future__ import annotations
 
+from datetime import datetime
+
+from shipping_engine.config import (
+    IRAN_TZ,
+    NIGHT_END_HOUR,
+    NIGHT_START_HOUR,
+)
 from shipping_engine.models import Item, Order
 
 
@@ -22,3 +29,16 @@ def order_net_value(order: Order) -> int:
 def _line_net_value(item: Item) -> int:
     """Net value of a single line, never below zero."""
     return max(0, item.unit_price * item.quantity - item.discount)
+
+
+def is_night_order(created_at: datetime) -> bool:
+    """Whether an order was placed within the night-surcharge window.
+
+    The window is ``[23:00, 06:00)`` in **Iran local time**:
+
+    - the timestamp is first converted to Iran time (decision D8), so a UTC
+      or any-offset ``created_at`` is interpreted by its local clock hour;
+    - ``23:00`` is inclusive and ``06:00`` is exclusive (decision D9).
+    """
+    hour = created_at.astimezone(IRAN_TZ).hour
+    return hour >= NIGHT_START_HOUR or hour < NIGHT_END_HOUR
