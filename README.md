@@ -44,22 +44,20 @@ DECISIONS.md    the decision log (primary deliverable)
 
 ## Usage
 
-The engine is a Python package; run it as a module. The default input/output
-paths (`../orders.json` / `../results.json`) are relative to the directory you
-run from *inside* the package, so run it from `shipping_engine/` with the
-repository root on the module path:
+The engine is a Python package; run it as a module from the repository root.
+The default input/output paths (`./orders.json` / `./results.json`) are
+relative to your current directory:
 
 ```bash
-cd shipping_engine
-PYTHONPATH=.. python -m shipping_engine.cli
+python -m shipping_engine.cli
 ```
 
-This reads `../orders.json` and writes `../results.json` (the repository root).
+This reads `orders.json` and writes `results.json` in the repository root.
 
 To use different files:
 
 ```bash
-python -m shipping_engine.cli -i ../orders.json -o ../results.json
+python -m shipping_engine.cli -i orders.json -o results.json
 ```
 
 ## Running the tests
