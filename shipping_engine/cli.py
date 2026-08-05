@@ -13,8 +13,8 @@ from pathlib import Path
 from shipping_engine.engine import compute_order_shipping
 from shipping_engine.io import load_orders, save_results
 
-DEFAULT_INPUT = Path("../orders.json")
-DEFAULT_OUTPUT = Path("../results.json")
+DEFAULT_INPUT = Path("./orders.json")
+DEFAULT_OUTPUT = Path("./results.json")
 
 
 def main(argv: list[str] | None = None) -> int:
