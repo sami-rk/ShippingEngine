@@ -22,8 +22,8 @@ from shipping_engine.models import Item, Order
 def order_net_value(order: Order) -> int:
     """Total payable (net) value of an order, after discounts.
 
-    Each line contributes ``unit_price * quantity - discount`` — i.e. the
-    ``discount`` is a line-total discount (decision D7) — floored at zero. The
+    Each line contributes ``unit_price * quantity - discount``, i.e. the
+    ``discount`` is a line-total discount (decision D7), and is floored at zero. The
     result drives the Rule 5 free-shipping threshold, measured on **net** (not
     gross) value and per **order** (decisions D2 and D3).
     """

@@ -1,6 +1,6 @@
 # Bazaar Shipping-Cost Engine
 
-Exercise 1 of the technical assignment — a small engine that computes shipping
+Exercise 1 of the technical assignment: a small engine that computes shipping
 fees for *Bazaar* marketplace orders according to the nine rules in
 `01-shipping-engine.pdf`. Implementation language: **Python 3**.
 
@@ -14,8 +14,8 @@ fees for *Bazaar* marketplace orders according to the nine rules in
   ceiling).
 - Writes the result to `results.json` in the schema described in the task.
 
-Every ambiguous, incomplete, or contradictory part of the rules — and the
-decision taken for each — is documented with full rationale in
+Every ambiguous, incomplete, or contradictory part of the rules, and the
+decision taken for each, is documented with full rationale in
 **[`DECISIONS.md`](DECISIONS.md)**. The `results.json` numbers are consistent
 with those stated decisions.
 
@@ -23,7 +23,7 @@ with those stated decisions.
 
 - Python **3.10+** (uses `zoneinfo` for the Iran timezone and
   `from __future__ import annotations`).
-- `pytest` — required only to run the test suite.
+- `pytest`: required only to run the test suite.
 
 ## Project layout
 
@@ -76,7 +76,7 @@ documented decisions.
 ## Running with Docker (one command)
 
 The repo ships a `Dockerfile` + `compose.yaml` so the whole task runs with a
-single command — no local Python setup needed:
+single command and requires no local Python setup:
 
 ```bash
 docker compose run --rm --build engine
@@ -116,7 +116,7 @@ sudo usermod -aG docker $USER
 ```
 
 Then **log out and back in** (or open a new terminal) for the group to take
-effect — a shell started before the change still uses the old permissions.
+effect: a shell started before the change still uses the old permissions.
 Verify with:
 
 ```bash

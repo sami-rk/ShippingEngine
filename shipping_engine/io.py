@@ -1,7 +1,7 @@
 """Input/output helpers for the shipping engine.
 
-- ``load_orders``  — parse the ``orders.json`` input array into ``Order``.
-- ``save_results`` — serialize ``OrderResult`` list to ``results.json``.
+- ``load_orders``: parse the ``orders.json`` input array into ``Order``.
+- ``save_results``: serialize ``OrderResult`` list to ``results.json``.
 """
 from __future__ import annotations
 

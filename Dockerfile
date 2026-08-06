@@ -1,4 +1,4 @@
-# Bazaar shipping-cost engine — runnable in a single container.
+# Bazaar shipping-cost engine, runnable in a single container.
 #
 # The engine uses only the Python standard library; this image additionally
 # installs tzdata (needed by zoneinfo for the Asia/Tehran timezone) and pytest

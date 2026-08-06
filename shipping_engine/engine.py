@@ -2,8 +2,8 @@
 
 Two entry points:
 
-- ``compute_shipment_fee`` — price a single seller's shipment (this step);
-- ``compute_order_shipping`` — group items, apply per-order logic, sum and cap.
+- ``compute_shipment_fee``: price a single seller's shipment (this step);
+- ``compute_order_shipping``: group items, apply per-order logic, sum and cap.
 
 The order of operations follows Pipeline A (decision D14): base + weight, then
 free-shipping zeroing, then bulky override, then night surcharge, then COD, and
@@ -34,19 +34,19 @@ def compute_shipment_fee(
 ) -> int:
     """Price a single shipment (one seller) for the given order context.
 
-    - ``items`` — the shipment's items (already grouped by seller);
-    - ``city_tier`` — drives the Rule 1 base cost;
-    - ``qualify_free`` — True if the order qualifies for free shipping (Rules
-      4/5, evaluated per order — decision D3);
-    - ``is_night`` — True if inside the night window (Rule 7);
-    - ``is_cod`` — True if cash-on-delivery (Rule 8).
+    - ``items``: the shipment's items (already grouped by seller);
+    - ``city_tier``: drives the Rule 1 base cost;
+    - ``qualify_free``: True if the order qualifies for free shipping (Rules
+      4/5, evaluated per order (decision D3));
+    - ``is_night``: True if inside the night window (Rule 7);
+    - ``is_cod``: True if cash-on-delivery (Rule 8).
 
     Applies the split model (decision D6): bulky items are charged their fixed
     per-item fee and are not covered by free shipping (Rule 6, decision D5);
     non-bulky items are charged base + weight (Rules 1 & 3), zeroed when the
     order qualifies for free shipping. The night surcharge is applied to the
-    base + weight + bulky subtotal only (COD is added afterwards — decision
-    D14), and the COD fee is charged per shipment (decision D10).
+    base + weight + bulky subtotal only (COD is added afterwards (decision
+    D14)), and the COD fee is charged per shipment (decision D10).
     """
     bulky_count = sum(item.quantity for item in items if item.is_bulky)
     non_bulky_weight = sum(
@@ -79,8 +79,8 @@ def compute_order_shipping(order: Order) -> OrderResult:
     """Compute the full shipping result for a single order.
 
     - groups items into shipments by seller (Rule 2);
-    - derives the per-order context: free shipping (Plus or net > threshold —
-      decisions D2/D3), night window (D8/D9) and cash-on-delivery (D10);
+    - derives the per-order context: free shipping (Plus or net > threshold,
+      per decisions D2/D3), night window (D8/D9) and cash-on-delivery (D10);
     - prices each shipment with ``compute_shipment_fee``;
     - sums the shipments and applies the per-order 200,000 cap last (decision
       D11 / D14). Shipments are reported pre-cap; the total is the capped sum
